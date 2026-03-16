@@ -1,43 +1,54 @@
 import { SignInButton } from '@/components/sign-in-button'
+import { Ticket, Clock, Bell } from 'lucide-react'
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm">
-        {/* Card */}
-        <div className="rounded-2xl border border-border bg-card shadow-sm p-8 flex flex-col items-center gap-6 text-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="text-4xl">🎬</div>
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight">BMS Notifier</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Know the second tickets drop
-              </p>
-            </div>
-          </div>
+        {/* Header bar */}
+        <div className="border border-border bg-primary px-5 py-3 flex items-center gap-3 shadow">
+          <Ticket className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
+          <span className="font-bold text-primary-foreground tracking-widest text-sm uppercase font-mono">
+            BMS Notifier
+          </span>
+        </div>
 
-          <div className="w-full flex flex-col gap-3">
-            <SignInButton />
-            <p className="text-xs text-muted-foreground">
-              We only use your Google account to identify you.
+        {/* Main card */}
+        <div className="border border-t-0 border-border bg-card shadow-md p-7 flex flex-col gap-7">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight leading-snug">
+              Know the second<br />tickets drop.
+            </h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              Automatic BMS availability monitoring — no refresh needed.
             </p>
           </div>
 
           {/* How it works */}
-          <div className="w-full border-t border-border pt-5 flex flex-col gap-3 text-left">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">How it works</p>
+          <div className="flex flex-col gap-3">
             {[
-              { step: '1', text: 'Paste any BMS URL with your target date' },
-              { step: '2', text: 'We check every 2 minutes automatically' },
-              { step: '3', text: 'Get an email the instant tickets go live' },
-            ].map(({ step, text }) => (
-              <div key={step} className="flex items-start gap-3">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
-                  {step}
-                </span>
-                <span className="text-sm text-muted-foreground">{text}</span>
+              { Icon: Ticket, text: 'Paste any BMS URL with your target date' },
+              { Icon: Clock,  text: 'We check every 2 minutes automatically' },
+              { Icon: Bell,   text: 'Get an email the instant tickets go live' },
+            ].map(({ Icon, text }, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center border border-border bg-secondary shadow-xs">
+                  <span className="text-xs font-bold font-mono">{i + 1}</span>
+                </div>
+                <div className="flex items-start gap-2 pt-0.5">
+                  <Icon className="h-4 w-4 shrink-0 text-muted-foreground mt-px" />
+                  <span className="text-sm">{text}</span>
+                </div>
               </div>
             ))}
+          </div>
+
+          {/* Sign in */}
+          <div className="flex flex-col gap-2">
+            <SignInButton />
+            <p className="text-xs text-muted-foreground text-center">
+              We only use your Google account to identify you.
+            </p>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { MonitorCard } from './monitor-card'
 import { Monitor } from '@/types'
+import { Ticket } from 'lucide-react'
 
 interface MonitorListProps {
   monitors: Monitor[]
@@ -14,18 +15,22 @@ export function MonitorList({ monitors, onRemoved }: MonitorListProps) {
 
   if (monitors.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border px-6 py-10 text-center">
-        <p className="text-2xl mb-2">🎟️</p>
-        <p className="text-sm font-medium text-foreground">No monitors yet</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Add a BMS URL above to start watching for tickets.
-        </p>
+      <div className="border border-dashed border-border px-6 py-12 text-center flex flex-col items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center border border-border bg-muted">
+          <Ticket className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div>
+          <p className="text-sm font-bold">No monitors yet</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Paste a BMS URL above to start watching for tickets.
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {active.map((m) => (
         <MonitorCard key={m.id} monitor={m} onRemoved={onRemoved} />
       ))}
@@ -33,9 +38,9 @@ export function MonitorList({ monitors, onRemoved }: MonitorListProps) {
       {done.length > 0 && (
         <>
           {active.length > 0 && (
-            <div className="flex items-center gap-3 my-1">
+            <div className="flex items-center gap-3 my-2">
               <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground uppercase tracking-wider">Completed</span>
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest font-mono">Completed</span>
               <div className="h-px flex-1 bg-border" />
             </div>
           )}

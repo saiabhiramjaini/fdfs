@@ -7,12 +7,12 @@ import { Monitor } from '@/types'
 
 export async function GET() {
   const session = await auth()
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   await connectDB()
-  const docs = await MonitorModel.find({ userId: session.user.id })
+  const docs = await MonitorModel.find({ userId: session.user.email })
     .sort({ createdAt: -1 })
     .lean()
 
@@ -35,7 +35,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await auth()
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
   await connectDB()
 
   const doc = await MonitorModel.create({
-    userId: session.user.id,
+    userId: session.user.email,
     url,
     notifyEmail,
     status: 'active',

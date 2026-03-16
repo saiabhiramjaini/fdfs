@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Monitor } from '@/types'
+import { Plus, Loader2 } from 'lucide-react'
 
 interface MonitorFormProps {
   defaultEmail: string
@@ -43,54 +43,72 @@ export function MonitorForm({ defaultEmail, onCreated }: MonitorFormProps) {
   }
 
   return (
-    <Card className="shadow-none">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-base">New Monitor</CardTitle>
-        <CardDescription className="text-sm">
-          Change the date in the BMS URL to your target day, then paste it below.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="url" className="text-sm font-medium">
-              BookMyShow URL
-            </Label>
-            <Input
-              id="url"
-              type="url"
-              placeholder="https://in.bookmyshow.com/cinemas/hyderabad/.../20260321"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="font-mono text-sm"
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Tip: Go to any working date on BMS, then change the 8-digit date in the URL.
-            </p>
-          </div>
+    <div className="border border-border bg-card shadow">
+      {/* Card header */}
+      <div className="border-b border-border px-5 py-4 bg-muted flex items-center justify-between">
+        <div>
+          <h2 className="font-bold text-sm uppercase tracking-widest font-mono">New Monitor</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Change the date in the BMS URL to your target day, then paste it below.
+          </p>
+        </div>
+        <div className="flex h-8 w-8 items-center justify-center border border-border bg-primary">
+          <Plus className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
+        </div>
+      </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="notifyEmail" className="text-sm font-medium">
-              Notify Email
-            </Label>
-            <Input
-              id="notifyEmail"
-              type="email"
-              value={notifyEmail}
-              onChange={(e) => setNotifyEmail(e.target.value)}
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              We&apos;ll send one email the moment tickets go live.
-            </p>
-          </div>
+      {/* Form body */}
+      <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-5">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="url" className="text-xs font-bold uppercase tracking-widest font-mono">
+            BookMyShow URL
+          </Label>
+          <Input
+            id="url"
+            type="url"
+            placeholder="https://in.bookmyshow.com/cinemas/hyderabad/.../20260321"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="font-mono text-sm"
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            Open any working date on BMS, then swap the 8-digit date at the end of the URL.
+          </p>
+        </div>
 
-          <Button type="submit" disabled={loading} className="w-full sm:w-fit mt-1">
-            {loading ? 'Starting...' : 'Start Monitoring'}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="notifyEmail" className="text-xs font-bold uppercase tracking-widest font-mono">
+            Notify Email
+          </Label>
+          <Input
+            id="notifyEmail"
+            type="email"
+            value={notifyEmail}
+            onChange={(e) => setNotifyEmail(e.target.value)}
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            One email the moment tickets go live.
+          </p>
+        </div>
+
+        <div>
+          <Button type="submit" disabled={loading} className="gap-2">
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Starting...
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" strokeWidth={2.5} />
+                Start Monitoring
+              </>
+            )}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      </form>
+    </div>
   )
 }

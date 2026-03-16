@@ -3,6 +3,7 @@
 import { signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
+import { LogOut } from 'lucide-react'
 
 interface UserMenuProps {
   name?: string | null
@@ -25,17 +26,17 @@ export function UserMenu({ name, email, image }: UserMenuProps) {
           <Image
             src={image}
             alt={name ?? 'User'}
-            width={34}
-            height={34}
-            className="rounded-full ring-2 ring-border"
+            width={32}
+            height={32}
+            className="border border-border"
           />
         ) : (
-          <div className="flex h-8.5 w-8.5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold ring-2 ring-border">
+          <div className="flex h-8 w-8 items-center justify-center border border-border bg-primary text-primary-foreground text-xs font-bold">
             {initials ?? '?'}
           </div>
         )}
         <div className="hidden sm:flex flex-col leading-tight">
-          {name && <span className="text-sm font-medium">{name}</span>}
+          {name && <span className="text-sm font-semibold">{name}</span>}
           {email && <span className="text-xs text-muted-foreground">{email}</span>}
         </div>
       </div>
@@ -43,9 +44,10 @@ export function UserMenu({ name, email, image }: UserMenuProps) {
         variant="outline"
         size="sm"
         onClick={() => signOut({ callbackUrl: '/login' })}
-        className="text-xs"
+        className="text-xs gap-1.5"
       >
-        Sign out
+        <LogOut className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">Sign out</span>
       </Button>
     </div>
   )

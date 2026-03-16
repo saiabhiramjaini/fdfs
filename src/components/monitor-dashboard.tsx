@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Separator } from '@/components/ui/separator'
 import { Monitor } from '@/types'
 import { MonitorForm } from './monitor-form'
 import { MonitorList } from './monitor-list'
@@ -40,13 +39,11 @@ export function MonitorDashboard({ defaultEmail, initialMonitors }: MonitorDashb
     <div className="flex flex-col gap-8">
       <MonitorForm defaultEmail={defaultEmail} onCreated={handleCreated} />
 
-      <Separator />
-
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-sm">Your Monitors</h2>
+          <h2 className="font-bold text-sm uppercase tracking-widest font-mono">Your Monitors</h2>
           {activeCount > 0 && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs font-mono font-bold border border-border px-2 py-0.5 bg-[#00cc00] text-black">
               {activeCount} active
             </span>
           )}

@@ -1,46 +1,65 @@
+import { getBrowser } from './browser'
+
 export interface CheckResult {
   available: boolean
   error?: string
 }
 
 /**
- * Checks if a BMS URL has tickets available.
+ * Uses a real headless Chromium browser (with stealth) to check if
+ * a BMS date URL has tickets available.
  *
- * Strategy: fetch with redirect:'manual'.
- * - 3xx redirect → BMS is bouncing the date → tickets NOT available yet
- * - 200 → page loaded for that date → tickets are LIVE
+ * Why Chromium and not fetch():
+ * BMS is protected by Cloudflare Bot Management. Plain fetch() — even with
+ * perfect browser headers — gets 403. A real browser passes Cloudflare's
+ * JavaScript challenge and renders the page like a human would.
  *
- * Note: This is the best approach without a headless browser.
- * BMS does server-side redirects for unavailable dates.
+ * Detection logic:
+ * - If the final URL still contains the date code → page loaded for that date
+ * - Then check if any show-time elements are present in the DOM
+ * - If redirected away from the date URL → tickets not open yet
  */
 export async function checkAvailability(url: string): Promise<CheckResult> {
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      redirect: 'manual',
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-IN,en;q=0.9',
-        'Cache-Control': 'no-cache',
-      },
-    })
+  const browser = await getBrowser()
+  const context = await browser.newContext({
+    userAgent:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    viewport: { width: 1280, height: 800 },
+    locale: 'en-IN',
+  }) as Awaited<ReturnType<typeof browser.newContext>>
 
-    if (response.status >= 300 && response.status < 400) {
+  const page = await context.newPage()
+
+  try {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 })
+
+    const finalUrl = page.url()
+    const dateCode = url.split('/').pop() // e.g. "20260320"
+
+    // If BMS redirected away from the date URL → not available yet
+    if (!dateCode || !finalUrl.includes(dateCode)) {
+      console.log(`[checker] Redirected away from ${dateCode} → not available`)
       return { available: false }
     }
 
-    if (response.status === 200) {
+    // Still on the right URL — check for show time text in the DOM
+    // BMS renders time slots like "09:00 AM", "02:30 PM" etc.
+    const showTimesCount = await page.locator('text=/\\d{1,2}:\\d{2} [AP]M/').count()
+
+    if (showTimesCount > 0) {
+      console.log(`[checker] Found ${showTimesCount} show time(s) → AVAILABLE`)
       return { available: true }
     }
 
-    return { available: false, error: `Unexpected status: ${response.status}` }
+    console.log(`[checker] On correct URL but no show times found → not available`)
+    return { available: false }
   } catch (err) {
     return {
       available: false,
       error: err instanceof Error ? err.message : 'Unknown error',
     }
+  } finally {
+    await page.close()
+    await context.close()
   }
 }

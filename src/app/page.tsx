@@ -6,6 +6,7 @@ import { Monitor } from '@/types'
 import { MonitorDashboard } from '@/components/monitor-dashboard'
 import { UserMenu } from '@/components/user-menu'
 import { CronStatus } from '@/components/cron-status'
+import { Ticket } from 'lucide-react'
 
 export default async function HomePage() {
   const session = await auth()
@@ -13,7 +14,7 @@ export default async function HomePage() {
 
   await connectDB()
 
-  const docs = await MonitorModel.find({ userId: session.user.id })
+  const docs = await MonitorModel.find({ userId: session.user.email })
     .sort({ createdAt: -1 })
     .lean()
 
@@ -33,12 +34,13 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top nav */}
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-10 border-b border-border bg-background">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🎬</span>
-            <span className="font-semibold text-sm tracking-tight">BMS Notifier</span>
+            <div className="flex h-7 w-7 items-center justify-center bg-primary border border-border">
+              <Ticket className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
+            </div>
+            <span className="font-bold text-sm uppercase tracking-widest font-mono">BMS Notifier</span>
           </div>
           <UserMenu
             name={session.user.name}
@@ -48,13 +50,8 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {/* Page content */}
-      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-        {/* Cron health pill */}
-        <div className="mb-6">
-          <CronStatus />
-        </div>
-
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 flex flex-col gap-6">
+        <CronStatus />
         <MonitorDashboard
           defaultEmail={session.user.email ?? ''}
           initialMonitors={monitors}

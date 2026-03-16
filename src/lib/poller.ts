@@ -13,7 +13,8 @@ async function checkOnce(monitorId: string): Promise<boolean> {
   await connectDB()
   const monitor = await MonitorModel.findById(monitorId)
 
-  if (!monitor || monitor.status !== 'active') {
+  // Stop only if deliberately stopped/notified — keep looping through transient errors
+  if (!monitor || monitor.status === 'notified' || monitor.status === 'stopped') {
     stopPolling(monitorId)
     return false
   }
@@ -24,7 +25,8 @@ async function checkOnce(monitorId: string): Promise<boolean> {
     $inc: { checkCount: 1 },
     lastChecked: new Date(),
     lastError: error ?? null,
-    ...(error ? { status: 'error' } : {}),
+    // Keep status 'active' even on errors so the loop continues
+    status: error ? 'error' : 'active',
   })
 
   if (available) {
@@ -79,8 +81,9 @@ export function activePollerCount(): number {
 /** Called on server boot — restores loops for all active monitors from DB. */
 export async function restorePollers(): Promise<void> {
   await connectDB()
-  const monitors = await MonitorModel.find({ status: 'active' })
-  console.log(`[poller] Restoring ${monitors.length} active monitor(s) from DB...`)
+  // Restore both 'active' and 'error' monitors — errors are transient, keep trying
+  const monitors = await MonitorModel.find({ status: { $in: ['active', 'error'] } })
+  console.log(`[poller] Restoring ${monitors.length} monitor(s) from DB...`)
   for (const monitor of monitors) {
     await startPolling(monitor._id.toString())
   }

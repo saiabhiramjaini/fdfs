@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { timeAgo } from '@/lib/bms'
+import { Activity, AlertTriangle, Clock } from 'lucide-react'
 
 interface Status {
   lastRun: string | null
@@ -29,15 +30,17 @@ export function CronStatus() {
   const neverRan = status.lastRun === null
   const stale = !neverRan && Date.now() - new Date(status.lastRun!).getTime() > 10 * 60 * 1000
 
-  const dotColor = neverRan ? 'bg-yellow-400' : stale ? 'bg-red-500' : 'bg-emerald-500'
+  const Icon = neverRan ? Clock : stale ? AlertTriangle : Activity
+  const dotBg = neverRan ? 'bg-secondary' : stale ? 'bg-primary' : 'bg-[#00cc00]'
   const text = neverRan
-    ? 'Cron: waiting for first run'
-    : `Cron: last ran ${timeAgo(status.lastRun!)} · ${status.totalActive} active monitor${status.totalActive !== 1 ? 's' : ''}`
+    ? 'Waiting for first run'
+    : `Last check: ${timeAgo(status.lastRun!)} · ${status.totalActive} active monitor${status.totalActive !== 1 ? 's' : ''}`
 
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1">
-      <span className={`h-1.5 w-1.5 rounded-full ${dotColor} ${!neverRan && !stale ? 'animate-pulse' : ''}`} />
-      <span className="text-xs text-muted-foreground">{text}</span>
+    <div className="inline-flex items-center gap-2 border border-border bg-muted px-3 py-1.5 shadow-xs self-start">
+      <div className={`h-2 w-2 border border-border ${dotBg} ${!neverRan && !stale ? 'animate-pulse' : ''}`} />
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      <span className="text-xs font-mono text-muted-foreground">{text}</span>
     </div>
   )
 }

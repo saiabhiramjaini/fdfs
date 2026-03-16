@@ -5,7 +5,7 @@ import { MonitorModel } from '@/models/Monitor'
 
 export async function GET() {
   const session = await auth()
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

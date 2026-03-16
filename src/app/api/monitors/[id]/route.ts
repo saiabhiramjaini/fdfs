@@ -9,7 +9,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -19,7 +19,7 @@ export async function DELETE(
   // Ensure the monitor belongs to the requesting user
   const deleted = await MonitorModel.findOneAndDelete({
     _id: id,
-    userId: session.user.id,
+    userId: session.user.email,
   })
 
   if (!deleted) {

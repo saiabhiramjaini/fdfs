@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Monitor, MonitorStatus } from '@/types'
 import { parseBmsUrl, timeAgo } from '@/lib/bms'
+import { RefreshCw, CheckCircle2, CircleOff, AlertCircle, Mail, Square } from 'lucide-react'
 
 interface MonitorCardProps {
   monitor: Monitor
@@ -16,30 +16,54 @@ const STATUS: Record<
   MonitorStatus,
   {
     label: string
-    variant: 'default' | 'secondary' | 'destructive' | 'outline'
-    border: string
-    dot: string
+    borderClass: string
+    tagBg: string
+    tagText: string
+    Icon: React.ComponentType<{ className?: string }>
+    spin?: boolean
   }
 > = {
-  active:   { label: 'Watching',  variant: 'default',      border: 'border-l-emerald-500',  dot: 'bg-emerald-500 animate-pulse' },
-  notified: { label: 'Notified',  variant: 'secondary',    border: 'border-l-blue-400',     dot: 'bg-blue-400' },
-  stopped:  { label: 'Stopped',   variant: 'outline',      border: 'border-l-border',       dot: 'bg-muted-foreground' },
-  error:    { label: 'Error',     variant: 'destructive',  border: 'border-l-destructive',  dot: 'bg-destructive' },
+  active: {
+    label: 'Watching',
+    borderClass: 'border-l-[#00cc00]',
+    tagBg: 'bg-[#00cc00]',
+    tagText: 'text-black',
+    Icon: RefreshCw,
+    spin: true,
+  },
+  notified: {
+    label: 'Notified',
+    borderClass: 'border-l-[#0066ff]',
+    tagBg: 'bg-[#0066ff]',
+    tagText: 'text-white',
+    Icon: CheckCircle2,
+  },
+  stopped: {
+    label: 'Stopped',
+    borderClass: 'border-l-muted-foreground',
+    tagBg: 'bg-muted',
+    tagText: 'text-muted-foreground',
+    Icon: CircleOff,
+  },
+  error: {
+    label: 'Error',
+    borderClass: 'border-l-primary',
+    tagBg: 'bg-primary',
+    tagText: 'text-primary-foreground',
+    Icon: AlertCircle,
+  },
 }
 
 export function MonitorCard({ monitor, onRemoved }: MonitorCardProps) {
   const [busy, setBusy] = useState(false)
   const info = parseBmsUrl(monitor.url)
-  const { label, variant, border, dot } = STATUS[monitor.status]
+  const { label, borderClass, tagBg, tagText, Icon, spin } = STATUS[monitor.status]
 
   async function handleRemove() {
     setBusy(true)
     try {
       const res = await fetch(`/api/monitors/${monitor.id}`, { method: 'DELETE' })
-      if (!res.ok) {
-        toast.error('Could not remove monitor')
-        return
-      }
+      if (!res.ok) { toast.error('Could not remove monitor'); return }
       toast.success(monitor.status === 'active' ? 'Monitor stopped' : 'Removed')
       onRemoved(monitor.id)
     } catch {
@@ -50,59 +74,68 @@ export function MonitorCard({ monitor, onRemoved }: MonitorCardProps) {
   }
 
   return (
-    <div className={`rounded-lg border border-l-4 ${border} bg-card px-4 py-4 flex items-start justify-between gap-4`}>
-      <div className="flex items-start gap-3 min-w-0">
-        {/* Status dot */}
-        <div className="mt-1.5 shrink-0">
-          <span className={`block h-2 w-2 rounded-full ${dot}`} />
+    <div className={`border border-l-4 ${borderClass} border-border bg-card shadow-xs flex items-start justify-between gap-4 px-4 py-4`}>
+      <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+        {/* Title + status tag */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-bold text-sm tracking-tight">
+            {info?.cinema ?? 'Unknown Cinema'}
+          </span>
+          <span className={`inline-flex items-center gap-1 px-1.5 py-px text-xs font-bold uppercase tracking-wider border border-border font-mono ${tagBg} ${tagText}`}>
+            <Icon className={`h-3 w-3 ${spin ? 'animate-spin' : ''}`} />
+            {label}
+          </span>
         </div>
 
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-sm">
-              {info?.cinema ?? 'Unknown Cinema'}
-            </span>
-            <Badge variant={variant} className="text-xs px-1.5 py-0">
-              {label}
-            </Badge>
-          </div>
+        {/* Location + date */}
+        {info && (
+          <span className="text-xs text-muted-foreground font-mono">
+            {info.city} · {info.date}
+          </span>
+        )}
 
-          {info && (
-            <span className="text-xs text-muted-foreground">
-              {info.city} · {info.date}
-            </span>
-          )}
-
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
-            <span>{monitor.checkCount} checks</span>
-            <span>·</span>
-            <span>Last: {timeAgo(monitor.lastChecked)}</span>
-            <span>·</span>
+        {/* Meta */}
+        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mt-0.5">
+          <span className="font-mono">{monitor.checkCount} checks</span>
+          <span>·</span>
+          <span>Last: {timeAgo(monitor.lastChecked)}</span>
+          <span>·</span>
+          <span className="flex items-center gap-1">
+            <Mail className="h-3 w-3 shrink-0" />
             <span className="truncate max-w-40">{monitor.notifyEmail}</span>
-          </div>
-
-          {monitor.status === 'notified' && monitor.notifiedAt && (
-            <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
-              ✓ Email sent at {new Date(monitor.notifiedAt).toLocaleTimeString()}
-            </p>
-          )}
-
-          {monitor.status === 'error' && monitor.lastError && (
-            <p className="text-xs text-destructive mt-1 truncate max-w-sm">
-              {monitor.lastError}
-            </p>
-          )}
+          </span>
         </div>
+
+        {monitor.status === 'notified' && monitor.notifiedAt && (
+          <p className="text-xs font-bold text-[#0066ff] mt-0.5">
+            Email sent at {new Date(monitor.notifiedAt).toLocaleTimeString()}
+          </p>
+        )}
+
+        {monitor.status === 'error' && monitor.lastError && (
+          <p className="text-xs text-primary mt-0.5 truncate max-w-sm">
+            {monitor.lastError}
+          </p>
+        )}
       </div>
 
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={handleRemove}
         disabled={busy}
-        className="shrink-0 text-muted-foreground hover:text-foreground text-xs h-7 px-2"
+        className="shrink-0 text-xs h-7 px-3 gap-1.5 font-mono"
       >
-        {busy ? '...' : monitor.status === 'active' ? 'Stop' : 'Remove'}
+        {busy ? (
+          <RefreshCw className="h-3 w-3 animate-spin" />
+        ) : monitor.status === 'active' ? (
+          <>
+            <Square className="h-3 w-3" />
+            Stop
+          </>
+        ) : (
+          'Remove'
+        )}
       </Button>
     </div>
   )
