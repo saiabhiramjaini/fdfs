@@ -9,7 +9,7 @@ export default function LoginPage() {
         <div className="border border-border bg-primary px-5 py-3 flex items-center gap-3 shadow">
           <Ticket className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
           <span className="font-bold text-primary-foreground tracking-widest text-sm uppercase font-mono">
-            BMS Notifier
+            FDFS
           </span>
         </div>
 

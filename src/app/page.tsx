@@ -40,7 +40,7 @@ export default async function HomePage() {
             <div className="flex h-7 w-7 items-center justify-center bg-primary border border-border">
               <Ticket className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
             </div>
-            <span className="font-bold text-sm uppercase tracking-widest font-mono">BMS Notifier</span>
+            <span className="font-bold text-sm uppercase tracking-widest font-mono">FDFS</span>
           </div>
           <UserMenu
             name={session.user.name}

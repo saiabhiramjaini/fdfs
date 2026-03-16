@@ -16,7 +16,7 @@ const fontMono = Space_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'BMS Notifier — Know the second tickets drop',
+  title: 'FDFS — First Day First Show',
   description: 'Automatic BookMyShow ticket availability monitoring. Get notified the moment your target date goes live.',
 }
 
