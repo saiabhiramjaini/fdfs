@@ -8,6 +8,31 @@ const pollers = new Map<string, NodeJS.Timeout>()
 
 const INTERVAL_MS = parseInt(process.env.CHECK_INTERVAL_MS ?? '120000') // default 2 min
 
+// Concurrency limiter — at most 2 Chromium contexts open at the same time
+const MAX_CONCURRENT = 2
+let runningChecks = 0
+const checkQueue: Array<() => void> = []
+
+function acquireSlot(): Promise<void> {
+  return new Promise((resolve) => {
+    if (runningChecks < MAX_CONCURRENT) {
+      runningChecks++
+      resolve()
+    } else {
+      checkQueue.push(() => { runningChecks++; resolve() })
+    }
+  })
+}
+
+function releaseSlot(): void {
+  const next = checkQueue.shift()
+  if (next) {
+    next()
+  } else {
+    runningChecks--
+  }
+}
+
 /** Check a single monitor once and update DB. Returns true if tickets found. */
 async function checkOnce(monitorId: string): Promise<boolean> {
   await connectDB()
@@ -19,7 +44,8 @@ async function checkOnce(monitorId: string): Promise<boolean> {
     return false
   }
 
-  const { available, error } = await checkAvailability(monitor.url)
+  await acquireSlot()
+  const { available, error } = await checkAvailability(monitor.url).finally(releaseSlot)
 
   await MonitorModel.findByIdAndUpdate(monitorId, {
     $inc: { checkCount: 1 },
