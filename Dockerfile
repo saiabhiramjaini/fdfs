@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:20-bookworm-slim
+FROM node:20-bookworm-slim
 
 # Required for playwright install-deps to work
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
